@@ -10,15 +10,14 @@
 
     :root{
       --green: #2ecc71;
+      --greenDark: #1e7f4f;
       --greenGlow: rgba(46,204,113,0.45);
       --greenGlowSoft: rgba(46,204,113,0.25);
     }
 
-    /* Google Sites iframe safety */
     html, body {
       margin: 0;
       padding: 0;
-      height: auto;
       overflow: hidden;
       background: transparent;
       font-family: Arial, sans-serif;
@@ -41,14 +40,12 @@
 
     /* JACKPOT CARD */
     .jackpot {
-      width: 100%;
       border: 3px solid var(--green);
       border-radius: 16px;
       padding: 12px 12px 10px;
       text-align: center;
       background: radial-gradient(circle at 50% 20%, #1f2d27 0%, #111 55%, #0b0b0b 100%);
       box-shadow: 0 0 20px var(--greenGlowSoft);
-      overflow: hidden;
     }
 
     .label {
@@ -73,28 +70,42 @@
       color: #bdbdbd;
     }
 
-    /* DISCLAIMER TEXT (for light page backgrounds) */
-    .disclaimer {
+    /* FUN DISCLAIMER CARDS */
+    .info {
+      display: grid;
+      gap: 10px;
+    }
+
+    .info-card {
+      background: #f6f7f8;
+      border-left: 5px solid var(--green);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #333;
       font-size: 14px;
-      line-height: 1.5;
-      color: #333;            /* DARK TEXT */
-      padding: 0 4px;
+      line-height: 1.45;
     }
 
-    .disclaimer p {
-      margin: 6px 0;
-    }
-
-    .disclaimer strong {
+    .info-card strong {
       color: #000;
     }
 
-    .disclaimer a {
-      color: #1e7f4f;
-      text-decoration: underline;
+    .info-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #000;
     }
 
-    .disclaimer a:hover {
+    .info-card a {
+      color: var(--greenDark);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .info-card a:hover {
       text-decoration: none;
     }
 
@@ -112,7 +123,6 @@
       .jackpot {
         padding: 8px 10px;
         border-width: 2px;
-        border-radius: 14px;
       }
 
       .label {
@@ -127,12 +137,9 @@
 
       #status { display: none; }
 
-      .disclaimer {
+      .info-card {
         font-size: 13px;
-      }
-
-      .disclaimer p {
-        margin: 4px 0;
+        padding: 8px 10px;
       }
     }
   </style>
@@ -143,33 +150,45 @@
     <div class="content">
 
       <!-- JACKPOT CARD -->
-      <div class="jackpot" id="card">
-        <div class="label" id="label">JACKPOT</div>
+      <div class="jackpot">
+        <div class="label">JACKPOT</div>
         <div class="amount" id="amount">Loading…</div>
         <div class="subtext" id="countdown">Loading kickoff…</div>
         <div class="subtext" id="status">Updates automatically</div>
       </div>
 
-      <!-- DISCLAIMER / PAGE TEXT -->
-      <div class="disclaimer">
-        <p>
+      <!-- FUN INFO SECTION -->
+      <div class="info">
+        <div class="info-card">
+          <div class="info-title">⏱️ Live Counter</div>
           Jackpot counter may take several minutes to update after an entry is submitted.
-        </p>
-        <p>
-          All entries must be submitted prior to kickoff. Entries are <strong>$10 each</strong>.
-          There is no limit on entries per person.
-        </p>
-        <p>
-          Entries will be voided if payment is not received prior to the submission deadline.
-          Payments can be submitted using any of our available payment options.
-        </p>
-        <p>
-          Entries may be edited prior to the submission deadline by emailing
+        </div>
+
+        <div class="info-card">
+          <div class="info-title">💵 Entry Details</div>
+          Entries are <strong>$10 each</strong>. No limit on entries per person.
+        </div>
+
+        <div class="info-card">
+          <div class="info-title">🏈 Deadlines</div>
+          All entries must be submitted prior to kickoff.
+        </div>
+
+        <div class="info-card">
+          <div class="info-title">❗ Payments</div>
+          Entries will be voided if payment is not received before the submission deadline.
+        </div>
+
+        <div class="info-card">
+          <div class="info-title">✏️ Changes</div>
+          Entries may be edited before kickoff by emailing
           <a href="mailto:coachmustache@gmail.com">coachmustache@gmail.com</a>.
-        </p>
-        <p>
+        </div>
+
+        <div class="info-card">
+          <div class="info-title">📊 Results</div>
           Entries and results will be posted here once the contest begins.
-        </p>
+        </div>
       </div>
 
     </div>
@@ -181,10 +200,6 @@
 
     let lastAmount = null;
 
-    function cleanCell(text) {
-      return String(text || "").replace(/^"|"$/g, "").trim();
-    }
-
     function formatMoney(n) {
       return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
     }
@@ -192,53 +207,31 @@
     async function loadJackpot() {
       try {
         const res = await fetch(csvUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-
         const csv = await res.text();
-        const line = csv.split(/\r?\n/).find(l => l.trim().length > 0);
-        if (!line) throw new Error("Empty CSV response");
-
-        const cells = line.split(",");
-        const amountRaw = cleanCell(cells[1]);
-
-        const num = Number(amountRaw.replace(/[^0-9.-]/g, ""));
-        const amountText = Number.isFinite(num) ? formatMoney(num) : "—";
+        const line = csv.split(/\r?\n/).find(l => l.trim());
+        const num = Number(line.split(",")[1]);
 
         const amtEl = document.getElementById("amount");
-        if (Number.isFinite(num) && lastAmount !== null && num > lastAmount) {
+        if (!isNaN(num) && lastAmount !== null && num > lastAmount) {
           amtEl.classList.remove("pop");
           void amtEl.offsetWidth;
           amtEl.classList.add("pop");
         }
-        lastAmount = Number.isFinite(num) ? num : lastAmount;
-
-        amtEl.textContent = amountText;
+        lastAmount = num;
+        amtEl.textContent = isNaN(num) ? "—" : formatMoney(num);
 
         document.getElementById("status").textContent =
           "Last updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-      } catch (err) {
-        document.getElementById("amount").textContent = "—";
-        console.error(err);
-      }
+      } catch {}
     }
 
     function updateCountdown() {
-      const now = new Date();
-      const diff = kickoff - now;
+      const diff = kickoff - new Date();
       const el = document.getElementById("countdown");
-
-      if (diff <= 0) {
-        el.textContent = "Kickoff!";
-        return;
-      }
-
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor((diff % 86400000) / 3600000);
+      if (diff <= 0) return el.textContent = "Kickoff!";
+      const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
-
-      el.textContent = d > 0
-        ? `Kickoff in ${d}d ${h}h ${m}m`
-        : `Kickoff in ${h}h ${m}m`;
+      el.textContent = `Kickoff in ${h}h ${m}m`;
     }
 
     loadJackpot();
