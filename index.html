@@ -13,6 +13,9 @@
       --greenDark: #1e7f4f;
       --greenGlow: rgba(46,204,113,0.45);
       --greenGlowSoft: rgba(46,204,113,0.25);
+
+      --cardBg: #f2f4f5;
+      --cardShadow: rgba(0,0,0,0.08);
     }
 
     html, body {
@@ -35,11 +38,13 @@
       max-width: 560px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
+      align-items: center;
     }
 
     /* JACKPOT CARD */
     .jackpot {
+      width: 100%;
       border: 3px solid var(--green);
       border-radius: 16px;
       padding: 12px 12px 10px;
@@ -70,20 +75,24 @@
       color: #bdbdbd;
     }
 
-    /* FUN DISCLAIMER CARDS */
+    /* CENTERED DISCLAIMER CARDS */
     .info {
+      width: 100%;
       display: grid;
-      gap: 10px;
+      gap: 12px;
     }
 
     .info-card {
-      background: #f6f7f8;
-      border-left: 5px solid var(--green);
-      border-radius: 10px;
-      padding: 10px 12px;
+      background: var(--cardBg);
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-align: center;
       color: #333;
       font-size: 14px;
       line-height: 1.45;
+      box-shadow:
+        0 6px 16px var(--cardShadow),
+        0 1px 3px rgba(0,0,0,0.05);
     }
 
     .info-card strong {
@@ -91,12 +100,12 @@
     }
 
     .info-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       color: #000;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
     }
 
     .info-card a {
@@ -139,7 +148,7 @@
 
       .info-card {
         font-size: 13px;
-        padding: 8px 10px;
+        padding: 12px 14px;
       }
     }
   </style>
@@ -157,7 +166,7 @@
         <div class="subtext" id="status">Updates automatically</div>
       </div>
 
-      <!-- FUN INFO SECTION -->
+      <!-- CENTERED INFO CARDS -->
       <div class="info">
         <div class="info-card">
           <div class="info-title">⏱️ Live Counter</div>
@@ -211,59 +220,36 @@
     async function loadJackpot() {
       try {
         const res = await fetch(csvUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-
         const csv = await res.text();
         const line = csv.split(/\r?\n/).find(l => l.trim().length > 0);
-        if (!line) throw new Error("Empty CSV response");
-
-        const cells = line.split(",");
-        const amountRaw = cleanCell(cells[1] || "");
-
-        // Strip $, commas, spaces, etc.
+        const amountRaw = cleanCell(line.split(",")[1]);
         const num = Number(amountRaw.replace(/[^0-9.-]/g, ""));
-        const amountText = Number.isFinite(num) ? formatMoney(num) : "—";
 
         const amtEl = document.getElementById("amount");
-
         if (Number.isFinite(num) && lastAmount !== null && num > lastAmount) {
           amtEl.classList.remove("pop");
-          void amtEl.offsetWidth; // restart animation
+          void amtEl.offsetWidth;
           amtEl.classList.add("pop");
         }
         if (Number.isFinite(num)) lastAmount = num;
 
-        amtEl.textContent = amountText;
+        amtEl.textContent = Number.isFinite(num) ? formatMoney(num) : "—";
 
-        const statusEl = document.getElementById("status");
-        if (statusEl) {
-          statusEl.textContent =
-            "Last updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-        }
-      } catch (err) {
+        document.getElementById("status").textContent =
+          "Last updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      } catch {
         document.getElementById("amount").textContent = "—";
-        console.error("Jackpot load error:", err);
       }
     }
 
     function updateCountdown() {
-      const now = new Date();
-      const diff = kickoff - now;
+      const diff = kickoff - new Date();
       const el = document.getElementById("countdown");
-      if (!el) return;
-
-      if (diff <= 0) {
-        el.textContent = "Kickoff!";
-        return;
-      }
-
+      if (diff <= 0) return el.textContent = "Kickoff!";
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
-
-      el.textContent = d > 0
-        ? `Kickoff in ${d}d ${h}h ${m}m`
-        : `Kickoff in ${h}h ${m}m`;
+      el.textContent = d > 0 ? `Kickoff in ${d}d ${h}h ${m}m` : `Kickoff in ${h}h ${m}m`;
     }
 
     loadJackpot();
@@ -273,4 +259,3 @@
   </script>
 </body>
 </html>
-
