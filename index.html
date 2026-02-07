@@ -200,6 +200,10 @@
 
     let lastAmount = null;
 
+    function cleanCell(text) {
+      return String(text || "").replace(/^"|"$/g, "").trim();
+    }
+
     function formatMoney(n) {
       return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
     }
@@ -207,31 +211,59 @@
     async function loadJackpot() {
       try {
         const res = await fetch(csvUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+
         const csv = await res.text();
-        const line = csv.split(/\r?\n/).find(l => l.trim());
-        const num = Number(line.split(",")[1]);
+        const line = csv.split(/\r?\n/).find(l => l.trim().length > 0);
+        if (!line) throw new Error("Empty CSV response");
+
+        const cells = line.split(",");
+        const amountRaw = cleanCell(cells[1] || "");
+
+        // Strip $, commas, spaces, etc.
+        const num = Number(amountRaw.replace(/[^0-9.-]/g, ""));
+        const amountText = Number.isFinite(num) ? formatMoney(num) : "—";
 
         const amtEl = document.getElementById("amount");
-        if (!isNaN(num) && lastAmount !== null && num > lastAmount) {
+
+        if (Number.isFinite(num) && lastAmount !== null && num > lastAmount) {
           amtEl.classList.remove("pop");
-          void amtEl.offsetWidth;
+          void amtEl.offsetWidth; // restart animation
           amtEl.classList.add("pop");
         }
-        lastAmount = num;
-        amtEl.textContent = isNaN(num) ? "—" : formatMoney(num);
+        if (Number.isFinite(num)) lastAmount = num;
 
-        document.getElementById("status").textContent =
-          "Last updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-      } catch {}
+        amtEl.textContent = amountText;
+
+        const statusEl = document.getElementById("status");
+        if (statusEl) {
+          statusEl.textContent =
+            "Last updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        }
+      } catch (err) {
+        document.getElementById("amount").textContent = "—";
+        console.error("Jackpot load error:", err);
+      }
     }
 
     function updateCountdown() {
-      const diff = kickoff - new Date();
+      const now = new Date();
+      const diff = kickoff - now;
       const el = document.getElementById("countdown");
-      if (diff <= 0) return el.textContent = "Kickoff!";
-      const h = Math.floor(diff / 3600000);
+      if (!el) return;
+
+      if (diff <= 0) {
+        el.textContent = "Kickoff!";
+        return;
+      }
+
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
-      el.textContent = `Kickoff in ${h}h ${m}m`;
+
+      el.textContent = d > 0
+        ? `Kickoff in ${d}d ${h}h ${m}m`
+        : `Kickoff in ${h}h ${m}m`;
     }
 
     loadJackpot();
@@ -241,3 +273,4 @@
   </script>
 </body>
 </html>
+
