@@ -15,7 +15,7 @@
       --labelTint: #9be7c4;
     }
 
-    /* ✅ Google Sites iframe safety (prevents internal scrollbars) */
+    /* Google Sites iframe safety */
     html, body {
       margin: 0;
       padding: 0;
@@ -25,7 +25,6 @@
       font-family: Arial, sans-serif;
     }
 
-    /* This keeps the widget compact and prevents scrollbars inside embeds */
     .wrap {
       width: 100%;
       display: flex;
@@ -33,9 +32,16 @@
       padding: 10px;
     }
 
-    .jackpot {
+    .content {
       width: 100%;
       max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .jackpot {
+      width: 100%;
       border: 3px solid var(--green);
       border-radius: 16px;
       padding: 12px 12px 10px;
@@ -67,6 +73,26 @@
       color: #8a8a8a;
     }
 
+    .disclaimer {
+      font-size: 14px;
+      line-height: 1.45;
+      color: #d0d0d0;
+      padding: 0 4px;
+    }
+
+    .disclaimer p {
+      margin: 6px 0;
+    }
+
+    .disclaimer a {
+      color: var(--green);
+      text-decoration: underline;
+    }
+
+    .disclaimer a:hover {
+      text-decoration: none;
+    }
+
     @keyframes pop {
       0%   { transform: scale(1); }
       40%  { transform: scale(1.08); }
@@ -74,12 +100,7 @@
     }
     .pop { animation: pop 0.4s ease-out; }
 
-    @media (max-width: 360px) {
-      .jackpot { padding: 14px; border-width: 2px; }
-      .label { letter-spacing: 1px; }
-    }
-
-    /* ✅ GOOGLE SITES MOBILE SAFE MODE (no guessing needed) */
+    /* Mobile safe mode for Google Sites */
     @media (max-width: 480px) {
       .wrap { padding: 0; }
 
@@ -96,34 +117,52 @@
       }
 
       .amount {
-        font-size: 34px;   /* force a safe height */
+        font-size: 34px;
         line-height: 1;
       }
 
-      /* Keep one info line only */
       #status { display: none; }
 
-      /* If you STILL see a scrollbar on mobile, uncomment this:
-      #countdown { display: none; }
-      */
+      .disclaimer {
+        font-size: 13px;
+      }
+
+      .disclaimer p {
+        margin: 4px 0;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="jackpot" id="card">
-      <div class="label" id="label">JACKPOT</div>
-      <div class="amount" id="amount">Loading…</div>
-      <div class="subtext" id="countdown">Loading kickoff…</div>
-      <div class="subtext" id="status">Updates automatically</div>
+    <div class="content">
+
+      <!-- JACKPOT CARD -->
+      <div class="jackpot" id="card">
+        <div class="label" id="label">JACKPOT</div>
+        <div class="amount" id="amount">Loading…</div>
+        <div class="subtext" id="countdown">Loading kickoff…</div>
+        <div class="subtext" id="status">Updates automatically</div>
+      </div>
+
+      <!-- DISCLAIMER / PAGE TEXT -->
+      <div class="disclaimer">
+        <p>💵 <strong>$10 per entry.</strong> Winner takes the entire jackpot.</p>
+        <p>🏈 Picks must be submitted before kickoff. In the event of a tie, the closest tiebreaker wins.</p>
+        <p>
+          📄 Full rules and entry form available
+          <a href="https://www.mustachemoneyline.com/super-bowl-60-entry" target="_blank" rel="noopener">
+            here
+          </a>.
+        </p>
+      </div>
+
     </div>
   </div>
 
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvxWm5EeVD-akvWoB9ArtroL8J1nh8USmTiPdepmbp8JNS3HfQvKtOfSEcgumT4mccp95PJBJBlfix/pub?gid=197167246&single=true&output=csv";
-
-    // Update if needed. This is "6:30 PM ET" on Feb 8, 2026.
     const kickoff = new Date("2026-02-08T18:30:00-05:00");
 
     let lastAmount = null;
@@ -157,7 +196,7 @@
         const amtEl = document.getElementById("amount");
         if (Number.isFinite(num) && lastAmount !== null && num > lastAmount) {
           amtEl.classList.remove("pop");
-          void amtEl.offsetWidth; // restart animation
+          void amtEl.offsetWidth;
           amtEl.classList.add("pop");
         }
         lastAmount = Number.isFinite(num) ? num : lastAmount;
@@ -169,7 +208,7 @@
       } catch (err) {
         document.getElementById("amount").textContent = "—";
         document.getElementById("status").textContent = "Couldn’t load jackpot";
-        console.error("Error loading jackpot:", err);
+        console.error(err);
       }
     }
 
