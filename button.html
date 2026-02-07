@@ -1,0 +1,52 @@
+<div class="submit-wrap">
+  <a
+    href="https://docs.google.com/forms/d/e/1FAIpQLScGRnkCn5m6NWjRLXcBDjx-T4JhZ8v5j_N1ZmDh6gJcQNMZAw/viewform?usp=publish-editor"
+    target="_blank"
+    rel="noopener"
+    class="submit-button"
+  >
+    📝 Submit Entry
+  </a>
+</div>
+
+<style>
+  .submit-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0 18px;
+  }
+
+  .submit-button {
+    background: linear-gradient(135deg, #2ecc71, #25b864);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 999px;
+    box-shadow:
+      0 10px 24px rgba(46,204,113,0.35),
+      0 3px 8px rgba(0,0,0,0.12);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 14px 30px rgba(46,204,113,0.45),
+      0 5px 12px rgba(0,0,0,0.15);
+  }
+
+  .submit-button:active {
+    transform: translateY(0);
+    box-shadow:
+      0 8px 18px rgba(46,204,113,0.35);
+  }
+
+  @media (max-width: 480px) {
+    .submit-button {
+      font-size: 16px;
+      padding: 14px 24px;
+    }
+  }
+</style>
