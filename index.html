@@ -159,3 +159,27 @@
   </script>
 </body>
 </html>
+/* MOBILE: make the widget shorter so it fits Google Sites' mobile iframe height */
+@media (max-width: 480px) {
+  .wrap { padding: 6px; }
+
+  .jackpot {
+    padding: 10px 10px 8px;
+    border-width: 2px;
+    border-radius: 14px;
+  }
+
+  .label {
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .amount {
+    font-size: clamp(30px, 9vw, 44px);
+  }
+
+  /* Biggest win: hide the last-updated line on mobile */
+  #status {
+    display: none;
+  }
+}
