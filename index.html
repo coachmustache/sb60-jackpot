@@ -15,8 +15,12 @@
       --labelTint: #9be7c4;
     }
 
-    body {
+    /* ✅ Google Sites iframe safety (prevents internal scrollbars) */
+    html, body {
       margin: 0;
+      padding: 0;
+      height: auto;
+      overflow: hidden;
       background: transparent;
       font-family: Arial, sans-serif;
     }
@@ -75,29 +79,33 @@
       .label { letter-spacing: 1px; }
     }
 
-    /* MOBILE: make the widget shorter so it fits Google Sites' mobile iframe height */
+    /* ✅ GOOGLE SITES MOBILE SAFE MODE (no guessing needed) */
     @media (max-width: 480px) {
-      .wrap { padding: 6px; }
+      .wrap { padding: 0; }
 
       .jackpot {
-        padding: 10px 10px 8px;
+        padding: 8px 10px;
         border-width: 2px;
         border-radius: 14px;
       }
 
       .label {
-        margin-bottom: 6px;
+        font-size: 14px;
         letter-spacing: 1px;
+        margin-bottom: 4px;
       }
 
       .amount {
-        font-size: clamp(30px, 9vw, 44px);
+        font-size: 34px;   /* force a safe height */
+        line-height: 1;
       }
 
-      /* Biggest win: hide the last-updated line on mobile */
-      #status {
-        display: none;
-      }
+      /* Keep one info line only */
+      #status { display: none; }
+
+      /* If you STILL see a scrollbar on mobile, uncomment this:
+      #countdown { display: none; }
+      */
     }
   </style>
 </head>
